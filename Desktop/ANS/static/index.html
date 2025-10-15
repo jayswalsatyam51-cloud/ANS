@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Medical Data Extraction</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .upload-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 2px dashed #dee2e6;
+            transition: all 0.3s ease;
+        }
+
+        .upload-section:hover {
+            border-color: #667eea;
+            background: #f0f2ff;
+        }
+
+        .upload-section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+            min-width: 150px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        }
+
+        .processing-status {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .processing-status.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .processing-status.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .processing-status.info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .results-section {
+            margin-top: 30px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .results-section h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .download-link {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            color: white;
+            text-decoration: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        .download-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(23, 162, 184, 0.3);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .step {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            position: relative;
+        }
+
+        .step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: -50%;
+            width: 100%;
+            height: 2px;
+            background: #dee2e6;
+            z-index: 1;
+        }
+
+        .step.active::after {
+            background: #667eea;
+        }
+
+        .step-number {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #dee2e6;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-weight: bold;
+        }
+
+        .step.active .step-number {
+            background: #667eea;
+        }
+
+        .step.completed .step-number {
+            background: #28a745;
+        }
+
+        .step-title {
+            font-size: 0.9em;
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+        .step.active .step-title {
+            color: #667eea;
+        }
+
+        .step.completed .step-title {
+            color: #28a745;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 10px;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .step-indicator {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .step:not(:last-child)::after {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 PDF Medical Data Extraction</h1>
+            <p>Upload PDF and get formatted medical report as DOCX document</p>
+        </div>
+
+        <div class="main-content">
+            <div class="step-indicator">
+                <div class="step active" id="step-1">
+                    <div class="step-number">1</div>
+                    <div class="step-title">Upload PDF</div>
+                </div>
+                <div class="step" id="step-2">
+                    <div class="step-number">2</div>
+                    <div class="step-title">Process & Extract</div>
+                </div>
+                <div class="step" id="step-3">
+                    <div class="step-number">3</div>
+                    <div class="step-title">Download DOCX</div>
+                </div>
+            </div>
+
+            <div class="upload-section">
+                <h2>📄 Upload PDF File</h2>
+                <form id="uploadForm" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="pdfFile">Select PDF File:</label>
+                        <input type="file" id="pdfFile" name="file" accept=".pdf" required>
+                    </div>
+                    
+                    
+                    <button type="submit" class="btn btn-success">🚀 Process & Generate DOCX</button>
+                </form>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Processing your PDF file...</p>
+            </div>
+
+            <div class="processing-status" id="status"></div>
+
+            <div class="results-section" id="results">
+                <h3>📊 Processing Complete</h3>
+                <div id="resultsContent"></div>
+                
+                <div id="downloadSection" style="display: none;">
+                    <h4>📄 Download Medical Report</h4>
+                    <p>Your medical report has been generated successfully!</p>
+                    <a href="#" id="downloadLink" class="download-link">📄 Download DOCX Report</a>
+                </div>
+            </div>
+
+            <div style="margin-top: 30px; text-align: center;">
+                <button class="btn btn-secondary" onclick="cleanup()">🧹 Cleanup Files</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+
+        function updateStepIndicator(step) {
+            // Update all steps
+            for (let i = 1; i <= 3; i++) {
+                const stepElement = document.getElementById(`step-${i}`);
+                stepElement.classList.remove('active', 'completed');
+                
+                if (i < step) {
+                    stepElement.classList.add('completed');
+                } else if (i === step) {
+                    stepElement.classList.add('active');
+                }
+            }
+            currentStep = step;
+        }
+
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `processing-status ${type}`;
+            statusDiv.style.display = 'block';
+        }
+
+        function hideStatus() {
+            document.getElementById('status').style.display = 'none';
+        }
+
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        function showResults(data) {
+            const resultsDiv = document.getElementById('results');
+            const contentDiv = document.getElementById('resultsContent');
+            const downloadSection = document.getElementById('downloadSection');
+            
+            let html = `
+                <div style="margin-bottom: 20px;">
+                    <h4>📈 Processing Summary</h4>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li><strong>Original File:</strong> ${data.original_file}</li>
+                        <li><strong>Output Format:</strong> DOCX Document</li>
+                    </ul>
+                </div>
+            `;
+
+            contentDiv.innerHTML = html;
+            resultsDiv.style.display = 'block';
+            downloadSection.style.display = 'block';
+            
+            // Set up download link
+            const downloadLink = document.getElementById('downloadLink');
+            downloadLink.href = `/documents/${data.output_file.split('/').pop()}`;
+            downloadLink.download = data.output_file.split('/').pop();
+        }
+
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            const fileInput = document.getElementById('pdfFile');
+            
+            if (!fileInput.files[0]) {
+                showStatus('Please select a PDF file', 'error');
+                return;
+            }
+            
+            formData.append('file', fileInput.files[0]);
+            
+            showLoading();
+            hideStatus();
+            updateStepIndicator(2);
+            
+            try {
+                const response = await fetch('/process-complete', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                hideLoading();
+                
+                if (result.success) {
+                    showStatus('✅ Processing completed successfully!', 'success');
+                    showResults(result.data);
+                    updateStepIndicator(3);
+                } else {
+                    showStatus(`❌ Error: ${result.message}`, 'error');
+                    if (result.errors) {
+                        console.error('Errors:', result.errors);
+                    }
+                }
+            } catch (error) {
+                hideLoading();
+                showStatus(`❌ Network error: ${error.message}`, 'error');
+                console.error('Error:', error);
+            }
+        });
+
+        function showResults(data) {
+            const resultsDiv = document.getElementById('results');
+            const contentDiv = document.getElementById('resultsContent');
+            const downloadSection = document.getElementById('downloadSection');
+            
+            let html = `
+                <div style="margin-bottom: 20px;">
+                    <h4>📈 Processing Summary</h4>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li><strong>Original File:</strong> ${data.original_file}</li>
+                        <li><strong>Output Format:</strong> DOCX Document</li>
+                    </ul>
+                </div>
+            `;
+
+            contentDiv.innerHTML = html;
+            resultsDiv.style.display = 'block';
+            downloadSection.style.display = 'block';
+            
+            // Set up download link
+            const downloadLink = document.getElementById('downloadLink');
+            downloadLink.href = `/documents/${data.docx_output.split('/').pop()}`;
+            downloadLink.download = data.docx_output.split('/').pop();
+        }
+
+        async function cleanup() {
+            try {
+                const response = await fetch('/cleanup', {
+                    method: 'POST'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showStatus('🧹 Cleanup completed successfully', 'success');
+                    document.getElementById('results').style.display = 'none';
+                    updateStepIndicator(1);
+                } else {
+                    showStatus(`❌ Cleanup failed: ${result.message}`, 'error');
+                }
+            } catch (error) {
+                showStatus(`❌ Cleanup error: ${error.message}`, 'error');
+            }
+        }
+
+        // Initialize
+        updateStepIndicator(1);
+    </script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+# PDF Medical Data Extraction API Requirements
+
+# Core FastAPI dependencies
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+
+# PDF processing libraries
+pdfplumber==0.10.3
+pymupdf==1.23.8
+pypdfium2==4.25.0
+
+# Image processing and OCR
+Pillow==10.1.0
+pytesseract==0.3.10
+
+# Data processing
+pandas==2.1.4
+numpy==1.25.2
+
+# JSON handling and utilities
+jsonschema==4.20.0
+
+# Optional: AI/LLM integration (for enhanced formatter)
+groq==0.4.1
+
+# Development and testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+httpx==0.25.2
+
+# Additional utilities
+python-dotenv==1.0.1
+pathlib==1.0.1
+python-docx==1.1.0
+
+# System dependencies (install separately)
+# For macOS: brew install tesseract
+# For Ubuntu/Debian: sudo apt-get install tesseract-ocr
+# For Windows: Download from https://github.com/UB-Mannheim/tesseract/wiki
